@@ -158,10 +158,13 @@ uint32_t weighted_average_of_colors( uint32_t colorA, uint32_t colorB, float fra
 
 void updateDisplays() {
   if (millis() - lastUpdateDisplays > UPDATEDISPLAYRATE) {
-    char buf[]="    "; // stores the number we're going to display
+    char *buf="    "; // stores the number we're going to display
     sprintf(buf,"%4d",millis()/100);// for testing display
     //sprintf(buf,"%4d",(int)(wattHours / 29));
     writeDisplay(display0, buf);
+    buf="    ";
+    //sprintf(buf,"%4d",millis()/100+5);// for testing display
+    //sprintf(buf,"%4d",(int)(wattage1 / 10));
     writeDisplay(display1, buf);
     lastUpdateDisplays = millis();
   }
