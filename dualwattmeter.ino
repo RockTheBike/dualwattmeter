@@ -1,7 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 #define VERSIONSTR "dualwattmeter standalone box"
 #define BAUDRATE 57600
-#define PRINTHEADER "millis()\t\tlastPrintDisplay\t\twattage0\t\twattage1" // a legend to the printed header
+#define PRINTHEADER "millis()\t\tlastPrintDisplay\twattage0\t\twattage1" // a legend to the printed header
 
 #define PRINTDISPLAYRATE 1000 // how many milliseconds between running printDisplay
 #define UPDATEDISPLAYRATE 1000 // how many milliseconds between running updateDisplays
@@ -82,7 +82,7 @@ void printDisplay() {
     Serial.print("\t\t\t");
     Serial.print(millis() - lastPrintDisplay);
     Serial.print("\t\t\t");
-    Serial.println(wattage0);
+    Serial.print(wattage0);
     Serial.print("\t\t\t");
     Serial.println(wattage1);
     lastPrintDisplay = millis();
