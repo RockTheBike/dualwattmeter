@@ -1,20 +1,22 @@
 #include <Adafruit_NeoPixel.h>
 #define VERSIONSTR "dualwattmeter standalone box"
 #define BAUDRATE 57600
-#define PRINTHEADER "millis()\t\tlastPrintDisplay\twattage0\t\twattage1" // a legend to the printed header
+#define PRINTHEADER "time\tvolt0\tvolt1\tamps0\tamps1\twatt0\twatt1" // a legend to the printed header
 
 #define PRINTDISPLAYRATE 1000 // how many milliseconds between running printDisplay
 #define UPDATEDISPLAYRATE 1000 // how many milliseconds between running updateDisplays
 
-#define VOLTPIN A0 // Voltage Sensor Pin
+#define VOLTPIN0 A0 // Voltage Sensor Pin
+#define VOLTPIN1 A1 // Voltage Sensor Pin
 #define AMPSPIN0 A3 // Current Sensor Pin
 #define AMPSPIN1 A2 // Current Sensor Pin
 #define NOISYZERO 0.5  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
 #define VOLTCOEFF 13.36  // larger number interprets as lower voltage
-#define AMPCOEFF 13.05  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
+#define AMPCOEFF0 13.05//9.82  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
+#define AMPCOEFF1 13.05  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
 #define AMPOFFSET 118.0 // when current sensor is at 0 amps this is the ADC value
-float voltage, current0, current1, wattage0, wattage1;
+float voltage0, voltage1, current0, current1, wattage0, wattage1;
 
 unsigned long lastPrintDisplay = 0; // when's the last time we did printDisplay
 unsigned long lastUpdateDisplays = 0; // when's the last time we did updateDisplays
@@ -56,19 +58,20 @@ void loop() {
 }
 
 void getVoltages(){
-  voltage = average(analogRead(VOLTPIN) / VOLTCOEFF, voltage);
+  voltage0 = average(analogRead(VOLTPIN0) / VOLTCOEFF, voltage0);
+  voltage1 = average(analogRead(VOLTPIN1) / VOLTCOEFF, voltage1);
 
   uint32_t ampsRaw = 0; // reset adder
   for(int j = 0; j < OVERSAMPLING; j++) ampsRaw += analogRead(AMPSPIN0) - AMPOFFSET;
-  current0 = ((float)ampsRaw / OVERSAMPLING) / AMPCOEFF;  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
+  current0 = ((float)ampsRaw / OVERSAMPLING) / AMPCOEFF0;  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
   if( current0 < NOISYZERO ) current0 = 0; // we assume anything near or below zero is a reading error
-  wattage0 = voltage * current0;
+  wattage0 = voltage0 * current0;
 
   ampsRaw = 0; // reset adder
   for(int j = 0; j < OVERSAMPLING; j++) ampsRaw += analogRead(AMPSPIN1) - AMPOFFSET;
-  current1 = ((float)ampsRaw / OVERSAMPLING) / AMPCOEFF;  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
+  current1 = ((float)ampsRaw / OVERSAMPLING) / AMPCOEFF1;  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
   if( current1 < NOISYZERO ) current1 = 0; // we assume anything near or below zero is a reading error
-  wattage1 = voltage * current1;
+  wattage1 = voltage1 * current1;
 }
 
 float average(float val, float avg){
@@ -79,11 +82,17 @@ float average(float val, float avg){
 void printDisplay() {
   if (millis() - lastPrintDisplay > PRINTDISPLAYRATE) {
     Serial.print(millis());
-    Serial.print("\t\t\t");
-    Serial.print(millis() - lastPrintDisplay);
-    Serial.print("\t\t\t");
+    Serial.print("\t");
+    Serial.print(voltage0);
+    Serial.print("\t");
+    Serial.print(voltage1);
+    Serial.print("\t");
+    Serial.print(current0);
+    Serial.print("\t");
+    Serial.print(current1);
+    Serial.print("\t");
     Serial.print(wattage0);
-    Serial.print("\t\t\t");
+    Serial.print("\t");
     Serial.println(wattage1);
     lastPrintDisplay = millis();
   }
@@ -159,12 +168,12 @@ uint32_t weighted_average_of_colors( uint32_t colorA, uint32_t colorB, float fra
 void updateDisplays() {
   if (millis() - lastUpdateDisplays > UPDATEDISPLAYRATE) {
     char *buf="    "; // stores the number we're going to display
-    sprintf(buf,"%4d",millis()/100);// for testing display
-    //sprintf(buf,"%4d",(int)(wattHours / 29));
+    //sprintf(buf,"%4d",millis()/100);// for testing display
+    sprintf(buf,"%4d",(int)(wattage0 * 10));
     writeDisplay(display0, buf);
     buf="    ";
     //sprintf(buf,"%4d",millis()/100+5);// for testing display
-    //sprintf(buf,"%4d",(int)(wattage1 / 10));
+    sprintf(buf,"%4d",(int)(wattage1 * 10));
     writeDisplay(display1, buf);
     lastUpdateDisplays = millis();
   }
