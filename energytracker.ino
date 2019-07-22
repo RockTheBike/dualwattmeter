@@ -176,7 +176,7 @@ void updateDisplays() {
 }
 
 void writeDisplay(const Adafruit_NeoPixel& strip, char* text) {
-#define DISPLAY_CHARS   4 // number of characters in display
+#define DISPLAY_CHARS   5 // number of characters in display
 #define FONT_W 7 // width of font
 #define FONT_H 8 // height of font
   for (int textIndex=0; textIndex<DISPLAY_CHARS; textIndex++) {
@@ -200,8 +200,8 @@ void writeDisplay(const Adafruit_NeoPixel& strip, char* text) {
       }
     }
   }
-  strip.setPixelColor((FONT_W-1)*FONT_H+0,fontColor); // light up the decimal point
-  strip.setPixelColor((FONT_W  )*FONT_H+7,backgroundColor); // keep decimal point visible
-  strip.setPixelColor((FONT_W-2)*FONT_H+7,backgroundColor); // keep decimal point visible
+  strip.setPixelColor(((2*FONT_W)-1)*FONT_H+0,fontColor); // light up the decimal point
+  strip.setPixelColor(((2*FONT_W)  )*FONT_H+7,backgroundColor); // keep decimal point visible
+  strip.setPixelColor(((2*FONT_W)-2)*FONT_H+7,backgroundColor); // keep decimal point visible
   strip.show(); // send the update out to the LEDs
 }
