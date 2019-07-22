@@ -1,5 +1,5 @@
 #include <Adafruit_NeoPixel.h>
-#define VERSIONSTR "dualwattmeter standalone box"
+#define VERSIONSTR "energytracker standalone box"
 #define BAUDRATE 57600
 #define PRINTHEADER "time\tvolt0\tvolt1\tamps0\tamps1\twatt0\twatt1" // a legend to the printed header
 
