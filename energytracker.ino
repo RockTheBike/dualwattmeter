@@ -23,17 +23,18 @@ unsigned long lastUpdateDisplays = 0; // when's the last time we did updateDispl
 unsigned long backupTimer = 0;
 
 #define POWER_STRIP_PIN         7
-#define POWER_STRIP_PIXELS      40 // number of pixels in whatwatt power column
+#define POWER_STRIP_PIXELS      54 // number of pixels in whatwatt power column
 #define DISPLAY0_PIN    4
 #define DISPLAY1_PIN    5
-#define DISPLAY_PIXELS (8*28) // actually 27 wide but leftmost doesn't exist
+#define DISPLAY_PIXELS (8*45)
 // bottom right is first pixel, goes up 8, left 1, down 8, left 1...
 // https://www.aliexpress.com/item/8-32-Pixel/32225275406.html
 #include "font1.h"
 uint32_t fontColor = Adafruit_NeoPixel::Color(64,64,25);
 uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,1);
 Adafruit_NeoPixel display0 = Adafruit_NeoPixel(DISPLAY_PIXELS, DISPLAY0_PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel display1 = Adafruit_NeoPixel(DISPLAY_PIXELS, DISPLAY1_PIN, NEO_GRB + NEO_KHZ800);
+//Adafruit_NeoPixel display1 = Adafruit_NeoPixel(DISPLAY_PIXELS, DISPLAY1_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel powerStrip = Adafruit_NeoPixel(POWER_STRIP_PIXELS, POWER_STRIP_PIN, NEO_GRB + NEO_KHZ800);
 
 // scale the logarithmic displays
 #define MIN_POWER 1
@@ -43,18 +44,17 @@ void setup() {
   Serial.begin(BAUDRATE);
   Serial.println(VERSIONSTR);
   Serial.println(PRINTHEADER);
+  powerStrip.begin(); // Initialize all pixels to 'off'
+  powerStrip.show(); // Initialize all pixels to 'off'
   display0.begin();
   display0.show();
-  display1.begin();
-  display1.show();
 }
 
 void loop() {
   updateDisplays();
   printDisplay();
   getVoltages();
-  // wattage = (millis()/100)%10000; // for testing powerStrip
-  // updatePowerStrip();
+  updatePowerStrip((millis()/100)%10000); // for testing powerStrip
 }
 
 void getVoltages(){
@@ -98,15 +98,15 @@ void printDisplay() {
   }
 }
 
-void updatePowerStrip(const Adafruit_NeoPixel& strip, int wattage){
+void updatePowerStrip(float wattage){
   float ledstolight;
   ledstolight = logPowerRamp(wattage);
   if( ledstolight > POWER_STRIP_PIXELS ) ledstolight=POWER_STRIP_PIXELS;
   unsigned char hue = ledstolight/POWER_STRIP_PIXELS * 170.0;
-  uint32_t color = Wheel(strip, hue<1?1:hue);
+  uint32_t color = Wheel(powerStrip, hue<1?1:hue);
   static const uint32_t dark = Adafruit_NeoPixel::Color(0,0,0);
-  doFractionalRamp(strip, 0, POWER_STRIP_PIXELS, ledstolight, color, dark);
-  strip.show();
+  doFractionalRamp(powerStrip, 0, POWER_STRIP_PIXELS, ledstolight, color, dark);
+  powerStrip.show();
 }
 
 float logPowerRamp( float p ) {
@@ -167,15 +167,11 @@ uint32_t weighted_average_of_colors( uint32_t colorA, uint32_t colorB, float fra
 
 void updateDisplays() {
   if (millis() - lastUpdateDisplays > UPDATEDISPLAYRATE) {
-    char *buf="    "; // stores the number we're going to display
-    //sprintf(buf,"%4d",millis()/100);// for testing display
-    sprintf(buf,"%4d",(int)(wattage0 * 10));
+    char *buf="     "; // stores the number we're going to display
+    sprintf(buf,"%5d",millis()/100);// for testing display
+    //sprintf(buf,"%5d",(int)(wattage0 * 100));
     writeDisplay(display0, buf);
     buf="    ";
-    //sprintf(buf,"%4d",millis()/100+5);// for testing display
-    sprintf(buf,"%4d",(int)(wattage1 * 10));
-    writeDisplay(display1, buf);
-    lastUpdateDisplays = millis();
   }
 }
 
